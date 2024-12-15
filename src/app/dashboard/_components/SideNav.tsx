@@ -3,6 +3,7 @@ import { LibraryBig, LineChart, MessagesSquare, Shield } from "lucide-react";
 import { usePathname } from "next/navigation";
 import React, { useEffect } from "react";
 import { Progress } from "@/components/ui/progress";
+import Link from "next/link";
 
 interface MenuItem {
     id: number;
@@ -38,7 +39,7 @@ function SideNav() {
         <div className="h-screen shadow-md border">
             <div className="p-5">
                 {menuList.map((menu) => (
-                    <h2
+                    <Link href={menu.path}
                         key={menu.id}
                         className={`flex items-center gap-3 p-4 mb-3 hover:bg-primary hover:text-white rounded-lg cursor-pointer text-gray-900 ${
                             path == menu.path && "bg-primary text-white"
@@ -46,7 +47,7 @@ function SideNav() {
                     >
                         <menu.icons />
                         {menu.name}
-                    </h2>
+                    </Link>
                 ))}
             </div>
             <div className="fixed bottom-8 p-6 w-64">
