@@ -1,7 +1,8 @@
+// components/SideNav.tsx
 import { Button } from "@/components/ui/button";
 import { LibraryBig, LineChart, MessagesSquare, Shield } from "lucide-react";
 import { usePathname } from "next/navigation";
-import React, { useEffect, useState } from "react";
+import React, { useCallback } from "react";
 import { Progress } from "@/components/ui/progress";
 import Link from "next/link";
 import { db } from "@/config";
@@ -9,6 +10,7 @@ import { JsonForms } from "@/config/schema";
 import { eq, desc } from "drizzle-orm";
 import { useUser } from "@clerk/nextjs";
 
+// Types
 interface MenuItem {
     id: number;
     name: string;
@@ -25,8 +27,9 @@ interface Form {
     createdBy: string;
     createdAt: string;
 }
+
 function SideNav() {
-    const menuList: MenuItem[] = [
+    const menuList: MenuItem[] = React.useMemo(() => [
         { id: 1, name: "MyForms", icons: LibraryBig, path: "/dashboard" },
         {
             id: 2,
@@ -41,68 +44,91 @@ function SideNav() {
             path: "/dashboard/analytics",
         },
         { id: 4, name: "Upgrade", icons: Shield, path: "/dashboard/upgrade" },
-    ];
+    ], []);
 
     const { user } = useUser();
     const path = usePathname();
+    const [formList, setFormList] = React.useState<Form[]>([]);
+    const [percFileCreated, setPercFileCreated] = React.useState(0);
 
-    const [formList, setFormList] = useState<Form[]>([]);
-    const [PercFileCreated, setPercFileCreated] = useState(0);
-
-    useEffect(() => {
-        user && getFormList();
-    }, [user]);
-
-    const getFormList = async () => {
-        const result = await db
-            .select()
-            .from(JsonForms)
-            .where(
-                eq(
-                    JsonForms.createdBy,
-                    user?.primaryEmailAddress?.emailAddress ?? ""
-                )
-            )
-            .orderBy(desc(JsonForms.id));
-        setFormList(result);
-        console.log(result);
+    const getFormList = useCallback(async () => {
+        if (!user?.primaryEmailAddress?.emailAddress) return;
         
-        const perc = (result.length / 3) * 100;
-        setPercFileCreated(perc);
+        try {
+            const result = await db
+                .select()
+                .from(JsonForms)
+                .where(
+                    eq(
+                        JsonForms.createdBy,
+                        user.primaryEmailAddress.emailAddress
+                    )
+                )
+                .orderBy(desc(JsonForms.id));
+                
+            setFormList(result);
+            const perc = (result.length / 3) * 100;
+            setPercFileCreated(Math.min(perc, 100));
+        } catch (error) {
+            console.error('Error fetching form list:', error);
+            // Here you might want to add error handling UI
+        }
+    }, [user?.primaryEmailAddress?.emailAddress]);
+
+    React.useEffect(() => {
+        if (user) {
+            getFormList();
+        }
+    }, [user, getFormList]);
+
+    const handleCreateForm = () => {
+        // Implement form creation logic here
+        console.log('Create form clicked');
     };
 
     return (
-        <div className="h-screen shadow-md border">
-            <div className="p-5">
+        <aside className="h-screen border shadow-md">
+            <nav className="p-5">
                 {menuList.map((menu) => (
                     <Link
                         href={menu.path}
                         key={menu.id}
-                        className={`flex items-center gap-3 p-4 mb-3 hover:bg-primary hover:text-white rounded-lg cursor-pointer text-gray-900 ${
-                            path == menu.path && "bg-primary text-white"
+                        className={`flex items-center gap-3 p-4 mb-3 rounded-lg cursor-pointer text-gray-900 hover:bg-primary hover:text-white transition-colors ${
+                            path === menu.path ? "bg-primary text-white" : ""
                         }`}
                     >
-                        <menu.icons />
-                        {menu.name}
+                        <menu.icons aria-hidden="true" />
+                        <span>{menu.name}</span>
                     </Link>
                 ))}
-            </div>
+            </nav>
+
             <div className="fixed bottom-8 p-6 w-64">
-                <Button className="w-full">+ Create Form</Button>
+                <Button 
+                    onClick={handleCreateForm}
+                    className="w-full"
+                >
+                    + Create Form
+                </Button>
+
                 <div className="mt-7">
-                    <Progress value={PercFileCreated} />
-                    <h2 className="text-sm mt-2 text-gray-600">
-                        <strong>{formList?.length} </strong>
-                        Out of
-                        <strong>3 </strong>
-                        form created
+                    <Progress 
+                        value={percFileCreated} 
+                        className="h-2"
+                        aria-label="Form creation progress"
+                    />
+                    <h2 className="mt-2 text-sm text-gray-600">
+                        <strong>{formList.length} </strong>
+                        out of
+                        <strong> 3 </strong>
+                        forms created
                     </h2>
-                    <h2 className="text-sm mt-3 text-gray-600">
-                        Upgrade Your Plan For unlimited AI Form Build
-                    </h2>
+                    <p className="mt-3 text-sm text-gray-600">
+                        Upgrade your plan for unlimited AI form building
+                    </p>
                 </div>
             </div>
-        </div>
+        </aside>
     );
 }
 

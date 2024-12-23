@@ -2,7 +2,7 @@
 import { db } from "@/config";
 import { JsonForms } from "@/config/schema";
 import { useUser } from "@clerk/nextjs";
-import { desc ,eq } from "drizzle-orm";
+import { desc, eq } from "drizzle-orm";
 import React, { useEffect, useState } from "react";
 import FormListResponse from "./_component/FormListResponse";
 
@@ -15,19 +15,19 @@ function Page() {
     }, [user]);
 
     const getFormList = async () => {
-            const result = await db
-                .select()
-                .from(JsonForms)
-                .where(
-                    eq(
-                        JsonForms.createdBy,
-                        user?.primaryEmailAddress?.emailAddress ?? ""
-                    )
+        const result = await db
+            .select()
+            .from(JsonForms)
+            .where(
+                eq(
+                    JsonForms.createdBy,
+                    user?.primaryEmailAddress?.emailAddress ?? ""
                 )
-                .orderBy(desc(JsonForms.id));
-            setFormList(result);
-            console.log(result);
-        };
+            )
+            .orderBy(desc(JsonForms.id));
+        setFormList(result);
+        console.log(result);
+    };
 
     return (
         <div className="p-10">
