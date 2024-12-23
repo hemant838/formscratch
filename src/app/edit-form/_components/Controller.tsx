@@ -9,13 +9,15 @@ import {
 import Theme from "@/app/_data/Theme";
 import GradientBg from "@/app/_data/GradientBg";
 import { Button } from "@/components/ui/button";
+import { Checkbox } from "@/components/ui/checkbox";
 
 interface ControllerProps {
     selectedTheme: (value: string) => void;
     selectedBackground: (value: string) => void;
+    setSignInEnable: (value: boolean) => void;
 }
 
-function Controller({ selectedTheme, selectedBackground }: ControllerProps) {
+function Controller({ selectedTheme, selectedBackground,setSignInEnable }: ControllerProps) {
     const [showMore, setShowMore] = useState(6);
     return (
         <div>
@@ -87,6 +89,13 @@ function Controller({ selectedTheme, selectedBackground }: ControllerProps) {
             >
                 {showMore > 6 ? "Show Less " : "Show More "}
             </Button>
+
+            <div className="flex gap-3 my-4 items-center mt-10">
+                <Checkbox onCheckedChange={(e) => setSignInEnable(e as boolean)} />
+                <h2>
+                    Enable Social Authentication before submitting the form
+                </h2>
+            </div>
         </div>
     );
 }

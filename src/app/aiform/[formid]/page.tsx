@@ -30,6 +30,7 @@ const LiveAiForm: React.FC<EditFormProps> = ({ params }) => {
               style: string | null;
               createdBy: string;
               createdAt: string;
+              enableSignIn: boolean;
           }
         | undefined
     >(undefined);
@@ -57,7 +58,10 @@ const LiveAiForm: React.FC<EditFormProps> = ({ params }) => {
             .select()
             .from(JsonForms)
             .where(eq(JsonForms.id, Number(params?.formid)));
-        setRecord(result[0]);
+        setRecord({
+            ...result[0],
+            enableSignIn: result[0].enabelSignIn ?? false
+        });
         setJsonForm(result[0].jsonform ? JSON.parse(result[0].jsonform) : {
             formTitle: "",
             formHeading: "",
@@ -76,6 +80,7 @@ const LiveAiForm: React.FC<EditFormProps> = ({ params }) => {
         selectedTheme={record?.theme || ""}
         editable={false}
         formId={record?.id ?? 0}
+        enableSignIn= {record?.enableSignIn}
         />
 
     </div>;

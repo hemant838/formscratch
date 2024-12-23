@@ -5,7 +5,12 @@ import { db } from "@/config";
 import { JsonForms } from "@/config/schema";
 import { useUser } from "@clerk/nextjs";
 import { eq, and } from "drizzle-orm";
-import { ArrowLeft, Share, ShareIcon, SquareArrowOutUpRight } from "lucide-react";
+import {
+    ArrowLeft,
+    Share,
+    ShareIcon,
+    SquareArrowOutUpRight,
+} from "lucide-react";
 import { useRouter } from "next/navigation";
 import React, { useEffect, useState } from "react";
 import FormUi from "../_components/FormUi";
@@ -132,7 +137,7 @@ const EditForm: React.FC<EditFormProps> = ({ params }) => {
     };
 
     const updateControllerFields = async (
-        value: string,
+        value: string | boolean,
         columnName: string
     ) => {
         // Ensure theme is not null, use "light" if empty
@@ -175,26 +180,26 @@ const EditForm: React.FC<EditFormProps> = ({ params }) => {
                     </Link>
 
                     <RWebShare
-                    data={{
-                        text:
-                            jsonForm?.formHeading +
-                            ", Build Your Form in Seconds",
-                        url:
-                            process.env.NEXT_PUBLIC_BASE_URL +
-                            "/aiform/" +
-                            record?.id,
-                        title: jsonForm?.formTitle,
-                    }}
-                    onClick={() => console.log("shared successfully!")}
-                >
-                    <Button
-                        variant="outline"
-                        size="sm"
-                        className="flex gap-2 mb-3 sm:mb-0 w-full sm:w-auto"
+                        data={{
+                            text:
+                                jsonForm?.formHeading +
+                                ", Build Your Form in Seconds",
+                            url:
+                                process.env.NEXT_PUBLIC_BASE_URL +
+                                "/aiform/" +
+                                record?.id,
+                            title: jsonForm?.formTitle,
+                        }}
+                        onClick={() => console.log("shared successfully!")}
                     >
-                        <Share className="h-5 w-5" /> Share
-                    </Button>
-                </RWebShare>
+                        <Button
+                            variant="outline"
+                            size="sm"
+                            className="flex gap-2 mb-3 sm:mb-0 w-full sm:w-auto"
+                        >
+                            <Share className="h-5 w-5" /> Share
+                        </Button>
+                    </RWebShare>
                 </div>
             </div>
 
@@ -208,6 +213,9 @@ const EditForm: React.FC<EditFormProps> = ({ params }) => {
                         selectedBackground={(value) => {
                             updateControllerFields(value, "background");
                             setSelectedBackground(value);
+                        }}
+                        setSignInEnable={(value: boolean) => {
+                            updateControllerFields(value, 'enabelSignIn');
                         }}
                     />
                 </div>

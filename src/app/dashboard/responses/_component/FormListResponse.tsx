@@ -53,10 +53,7 @@ function FormListResponse({ jsonForm, formRecord }: any) {
             <hr className="my-4" />
 
             <div className="flex justify-between items-center">
-                <h2>
-                    <strong>45 </strong>
-                    Response
-                </h2>
+                
                 <Button
                     className=""
                     size="sm"
