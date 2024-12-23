@@ -6,7 +6,7 @@ import { desc ,eq } from "drizzle-orm";
 import React, { useEffect, useState } from "react";
 import FormListResponse from "./_component/FormListResponse";
 
-function page() {
+function Page() {
     const { user } = useUser();
     const [formList, setFormList] = React.useState<any[]>([]);
 
@@ -47,4 +47,4 @@ function page() {
     );
 }
 
-export default page;
+export default Page;
