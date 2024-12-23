@@ -4,7 +4,7 @@ import FormUi from "@/app/edit-form/_components/FormUi";
 import { db } from "@/config";
 import { JsonForms } from "@/config/schema";
 import { eq } from "drizzle-orm";
-import React, { useEffect, useState } from "react";
+import React, { useCallback, useEffect, useState } from "react";
 
 interface Field {
     placeholder: string;
@@ -44,16 +44,7 @@ const LiveAiForm: React.FC<EditFormProps> = ({ params }) => {
         fields: []
     });
 
-    useEffect(() => {
-        const fetchData = async () => {
-            if (params) {
-                await GetFormData();
-            }
-        };
-        fetchData();
-    }, [params]);
-
-    const GetFormData = async () => {
+    const GetFormData = useCallback(async () => {
         const result = await db
             .select()
             .from(JsonForms)
@@ -68,7 +59,16 @@ const LiveAiForm: React.FC<EditFormProps> = ({ params }) => {
             fields: []
         });
         console.log(result);
-    };
+    },[params?.formid]);
+
+    useEffect(() => {
+        const fetchData = async () => {
+            if (params) {
+                await GetFormData();
+            }
+        };
+        fetchData();
+    }, [params, GetFormData]);
 
 
     return <div className="p-10 flex justify-center items-center" style={ {

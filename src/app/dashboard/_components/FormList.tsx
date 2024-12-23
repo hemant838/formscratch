@@ -3,7 +3,7 @@ import { db } from "@/config";
 import { JsonForms } from "@/config/schema";
 import { useUser } from "@clerk/nextjs";
 import { desc, eq } from "drizzle-orm";
-import React, { useEffect } from "react";
+import React, { useCallback, useEffect } from "react";
 import { set } from "zod";
 import FormListItem from "./FormListItem";
 
@@ -15,7 +15,7 @@ function FormList() {
         user && getFormList();
     }, [user]);
 
-    const getFormList = async () => {
+    const getFormList = useCallback(async () => {
         const result = await db
             .select()
             .from(JsonForms)
@@ -28,7 +28,8 @@ function FormList() {
             .orderBy(desc(JsonForms.id));
         setFormList(result);
         console.log(result);
-    };
+    }, [user]);
+    
     return (
         <div className="mt-5 grid lg:grid-cols-4 md:grid-cols-3 md:gap-1 gap-5">
             {formList.map((form, index) => (

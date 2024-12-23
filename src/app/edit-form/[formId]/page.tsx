@@ -5,16 +5,10 @@ import { db } from "@/config";
 import { JsonForms } from "@/config/schema";
 import { useUser } from "@clerk/nextjs";
 import { eq, and } from "drizzle-orm";
-import {
-    ArrowLeft,
-    Share,
-    ShareIcon,
-    SquareArrowOutUpRight,
-} from "lucide-react";
+import { ArrowLeft, Share, SquareArrowOutUpRight } from "lucide-react";
 import { useRouter } from "next/navigation";
 import React, { useEffect, useState } from "react";
 import FormUi from "../_components/FormUi";
-
 import { toast } from "sonner";
 import Controller from "../_components/Controller";
 import Link from "next/link";
@@ -40,6 +34,16 @@ interface JsonForm {
     fields: Field[];
 }
 
+interface Record {
+    id: number;
+    jsonform: string | null;
+    theme: string;
+    background: string | null;
+    style: string | null;
+    createdBy: string;
+    createdAt: string;
+}
+
 const EditForm: React.FC<EditFormProps> = ({ params }) => {
     const { user } = useUser();
     const [jsonForm, setJsonForm] = useState<JsonForm>({
@@ -51,51 +55,39 @@ const EditForm: React.FC<EditFormProps> = ({ params }) => {
     const [updateTrigger, setUpdateTrigger] = useState<number | undefined>(
         undefined
     );
-
-    interface Record {
-        id: number;
-        jsonform: string | null;
-        theme: string;
-        background: string | null;
-        style: string | null;
-        createdBy: string;
-        createdAt: string;
-    }
-
     const [record, setRecord] = useState<Record | null>(null);
-
     const [selectedTheme, setSelectedTheme] = useState("light");
     const [selectedBackground, setSelectedBackground] = useState<string>("");
 
     useEffect(() => {
-        user && GetFormData();
-    }, [user]);
-
-    const GetFormData = async () => {
-        try {
-            const result = await db
-                .select()
-                .from(JsonForms)
-                .where(
-                    and(
-                        eq(JsonForms.id, parseInt(params.formId!)),
-                        eq(
-                            JsonForms.createdBy,
-                            user?.primaryEmailAddress?.emailAddress ?? ""
+        const fetchFormData = async () => {
+            try {
+                const result = await db
+                    .select()
+                    .from(JsonForms)
+                    .where(
+                        and(
+                            eq(JsonForms.id, parseInt(params.formId!)),
+                            eq(
+                                JsonForms.createdBy,
+                                user?.primaryEmailAddress?.emailAddress ?? ""
+                            )
                         )
-                    )
+                    );
+                setRecord(result[0]);
+                setJsonForm(
+                    result[0]?.jsonform
+                        ? JSON.parse(result[0].jsonform)
+                        : { formTitle: "", formHeading: "", fields: [] }
                 );
-            setRecord(result[0]);
-            setJsonForm(
-                result[0].jsonform
-                    ? JSON.parse(result[0].jsonform)
-                    : { formTitle: "", formHeading: "", fields: [] }
-            );
-            setSelectedBackground(result[0].background ?? "");
-        } catch (error) {
-            console.error("Error fetching form data:", error);
-        }
-    };
+                setSelectedBackground(result[0]?.background ?? "");
+            } catch (error) {
+                console.error("Error fetching form data:", error);
+            }
+        };
+
+        if (user) fetchFormData();
+    }, [user, params.formId]);
 
     useEffect(() => {
         if (updateTrigger) {
@@ -128,9 +120,10 @@ const EditForm: React.FC<EditFormProps> = ({ params }) => {
         toast("Form Updated Successfully");
         console.log(result);
     };
+
     const deleteField = (indexToRemove: number) => {
         const result = jsonForm.fields.filter(
-            (item, index) => index != indexToRemove
+            (_, index) => index !== indexToRemove
         );
         jsonForm.fields = result;
         setUpdateTrigger(Date.now());
@@ -140,7 +133,6 @@ const EditForm: React.FC<EditFormProps> = ({ params }) => {
         value: string | boolean,
         columnName: string
     ) => {
-        // Ensure theme is not null, use "light" if empty
         const themeToSave = columnName === "theme" && !value ? "light" : value;
 
         const result = await db
@@ -215,7 +207,7 @@ const EditForm: React.FC<EditFormProps> = ({ params }) => {
                             setSelectedBackground(value);
                         }}
                         setSignInEnable={(value: boolean) => {
-                            updateControllerFields(value, 'enabelSignIn');
+                            updateControllerFields(value, "enabelSignIn");
                         }}
                     />
                 </div>
