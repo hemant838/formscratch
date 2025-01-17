@@ -11,7 +11,7 @@ function FormList() {
     const [formList, setFormList] = useState<any[]>([]);
 
     const getFormList = useCallback(async () => {
-        if (!user) return; // Ensure user is available before making the query
+        if (!user) return; // Ensure user exists before making the query
         const result = await db
             .select()
             .from(JsonForms)
@@ -32,8 +32,8 @@ function FormList() {
 
     return (
         <div className="mt-5 grid lg:grid-cols-4 md:grid-cols-3 md:gap-1 gap-5">
-            {formList.map((form, index) => (
-                <div key={index}>
+            {formList.map((form) => (
+                <div key={form.id}> {/* Use a unique property from the form as the key */}
                     <FormListItem
                         jsonform={JSON.parse(form.jsonform)}
                         formRecord={form}
