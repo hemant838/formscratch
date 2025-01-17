@@ -1,4 +1,5 @@
 "use client";
+
 import { db } from "@/config";
 import { JsonForms } from "@/config/schema";
 import { useUser } from "@clerk/nextjs";
@@ -28,7 +29,7 @@ function Page() {
 
     useEffect(() => {
         getFormList();
-    }, [getFormList]);
+    }, [getFormList]); // Added getFormList to dependency array
 
     return (
         <div className="p-10">
@@ -39,7 +40,7 @@ function Page() {
             <div className="grid grid-cols-1 gap-4 mt-4">
                 {formList.map((form) => (
                     <FormListResponse
-                        key={form.id} // Ensure each item has a unique key
+                        key={form.id} // Added key prop
                         formRecord={form}
                         jsonForm={JSON.parse(form.jsonform)}
                     />

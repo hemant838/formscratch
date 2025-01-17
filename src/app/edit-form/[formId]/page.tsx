@@ -7,7 +7,7 @@ import { useUser } from "@clerk/nextjs";
 import { eq, and } from "drizzle-orm";
 import { ArrowLeft, Share, SquareArrowOutUpRight } from "lucide-react";
 import { useRouter } from "next/navigation";
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState, useCallback } from "react";
 import FormUi from "../_components/FormUi";
 import { toast } from "sonner";
 import Controller from "../_components/Controller";
@@ -59,73 +59,82 @@ const EditForm: React.FC<EditFormProps> = ({ params }) => {
     const [selectedTheme, setSelectedTheme] = useState("light");
     const [selectedBackground, setSelectedBackground] = useState<string>("");
 
-    useEffect(() => {
-        const fetchFormData = async () => {
-            try {
-                const result = await db
-                    .select()
-                    .from(JsonForms)
-                    .where(
-                        and(
-                            eq(JsonForms.id, parseInt(params.formId!)),
-                            eq(
-                                JsonForms.createdBy,
-                                user?.primaryEmailAddress?.emailAddress ?? ""
-                            )
+    const fetchFormData = useCallback(async () => {
+        try {
+            const result = await db
+                .select()
+                .from(JsonForms)
+                .where(
+                    and(
+                        eq(JsonForms.id, parseInt(params.formId!)),
+                        eq(
+                            JsonForms.createdBy,
+                            user?.primaryEmailAddress?.emailAddress ?? ""
                         )
-                    );
-                setRecord(result[0]);
-                setJsonForm(
-                    result[0]?.jsonform
-                        ? JSON.parse(result[0].jsonform)
-                        : { formTitle: "", formHeading: "", fields: [] }
+                    )
                 );
-                setSelectedBackground(result[0]?.background ?? "");
-            } catch (error) {
-                console.error("Error fetching form data:", error);
-            }
-        };
+            setRecord(result[0]);
+            setJsonForm(
+                result[0]?.jsonform
+                    ? JSON.parse(result[0].jsonform)
+                    : { formTitle: "", formHeading: "", fields: [] }
+            );
+            setSelectedBackground(result[0]?.background ?? "");
+        } catch (error) {
+            console.error("Error fetching form data:", error);
+        }
+    }, [params.formId, user]);
 
+    useEffect(() => {
         if (user) fetchFormData();
-    }, [user, params.formId]);
+    }, [user, fetchFormData]);
+
+    const updateJsonFormDb = useCallback(async () => {
+        if (!record) return;
+        try {
+            const result = await db
+                .update(JsonForms)
+                .set({
+                    jsonform: JSON.stringify(jsonForm),
+                })
+                .where(
+                    and(
+                        eq(JsonForms.id, record.id),
+                        eq(
+                            JsonForms.createdBy,
+                            user?.primaryEmailAddress?.emailAddress ?? ""
+                        )
+                    )
+                );
+            toast("Form Updated Successfully");
+            console.log(result);
+        } catch (error) {
+            console.error("Error updating form data:", error);
+        }
+    }, [jsonForm, record, user]);
 
     useEffect(() => {
         if (updateTrigger) {
-            setJsonForm(jsonForm);
+            setJsonForm((prev) => ({ ...prev })); // Functional update to avoid direct dependency
             updateJsonFormDb();
         }
-    }, [updateTrigger]);
+    }, [updateTrigger, updateJsonFormDb]);
 
     const onFieldUpdate = (value: any, index: any) => {
-        jsonForm.fields[index].label = value.label;
-        jsonForm.fields[index].placeholder = value.placeholder;
+        setJsonForm((prev) => {
+            const updatedFields = [...prev.fields];
+            updatedFields[index].label = value.label;
+            updatedFields[index].placeholder = value.placeholder;
+            return { ...prev, fields: updatedFields };
+        });
         setUpdateTrigger(Date.now());
     };
 
-    const updateJsonFormDb = async () => {
-        const result = await db
-            .update(JsonForms)
-            .set({
-                jsonform: JSON.stringify(jsonForm),
-            })
-            .where(
-                and(
-                    eq(JsonForms.id, record?.id ?? 0),
-                    eq(
-                        JsonForms.createdBy,
-                        user?.primaryEmailAddress?.emailAddress ?? ""
-                    )
-                )
-            );
-        toast("Form Updated Successfully");
-        console.log(result);
-    };
-
     const deleteField = (indexToRemove: number) => {
-        const result = jsonForm.fields.filter(
-            (_, index) => index !== indexToRemove
-        );
-        jsonForm.fields = result;
+        setJsonForm((prev) => ({
+            ...prev,
+            fields: prev.fields.filter((_, index) => index !== indexToRemove),
+        }));
         setUpdateTrigger(Date.now());
     };
 
@@ -135,21 +144,25 @@ const EditForm: React.FC<EditFormProps> = ({ params }) => {
     ) => {
         const themeToSave = columnName === "theme" && !value ? "light" : value;
 
-        const result = await db
-            .update(JsonForms)
-            .set({
-                [columnName]: themeToSave,
-            })
-            .where(
-                and(
-                    eq(JsonForms.id, record?.id ?? 0),
-                    eq(
-                        JsonForms.createdBy,
-                        user?.primaryEmailAddress?.emailAddress ?? ""
+        try {
+            const result = await db
+                .update(JsonForms)
+                .set({
+                    [columnName]: themeToSave,
+                })
+                .where(
+                    and(
+                        eq(JsonForms.id, record?.id ?? 0),
+                        eq(
+                            JsonForms.createdBy,
+                            user?.primaryEmailAddress?.emailAddress ?? ""
+                        )
                     )
-                )
-            );
-        toast("Form Updated Successfully");
+                );
+            toast("Form Updated Successfully");
+        } catch (error) {
+            console.error("Error updating controller fields:", error);
+        }
     };
 
     return (
