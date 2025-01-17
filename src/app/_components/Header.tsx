@@ -9,9 +9,10 @@ import React, { useEffect } from "react";
 function Header() {
     const { isSignedIn } = useUser();
     const path = usePathname();
+
     useEffect(() => {
         console.log(path);
-    }, []);
+    }, [path]); // Add 'path' to the dependency array
 
     return (
         !path.includes("aiform") && (

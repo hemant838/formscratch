@@ -3,31 +3,32 @@ import { db } from "@/config";
 import { JsonForms } from "@/config/schema";
 import { useUser } from "@clerk/nextjs";
 import { desc, eq } from "drizzle-orm";
-import React, { useEffect, useState } from "react";
+import React, { useCallback, useEffect, useState } from "react";
 import FormListResponse from "./_component/FormListResponse";
 
 function Page() {
     const { user } = useUser();
-    const [formList, setFormList] = React.useState<any[]>([]);
+    const [formList, setFormList] = useState<any[]>([]);
 
-    useEffect(() => {
-        user && getFormList();
-    }, [user]);
-
-    const getFormList = async () => {
+    const getFormList = useCallback(async () => {
+        if (!user) return; // Ensure user is defined before querying
         const result = await db
             .select()
             .from(JsonForms)
             .where(
                 eq(
                     JsonForms.createdBy,
-                    user?.primaryEmailAddress?.emailAddress ?? ""
+                    user.primaryEmailAddress?.emailAddress ?? ""
                 )
             )
             .orderBy(desc(JsonForms.id));
         setFormList(result);
         console.log(result);
-    };
+    }, [user]);
+
+    useEffect(() => {
+        getFormList();
+    }, [getFormList]);
 
     return (
         <div className="p-10">
@@ -36,8 +37,9 @@ function Page() {
             </h2>
 
             <div className="grid grid-cols-1 gap-4 mt-4">
-                {formList.map((form, index) => (
+                {formList.map((form) => (
                     <FormListResponse
+                        key={form.id} // Ensure each item has a unique key
                         formRecord={form}
                         jsonForm={JSON.parse(form.jsonform)}
                     />
