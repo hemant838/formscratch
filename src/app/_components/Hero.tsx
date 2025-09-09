@@ -14,8 +14,8 @@ function Hero() {
                         </h1>
 
                         <p className="mx-auto mt-4 max-w-xl sm:text-xl/relaxed text-3xl">
-                        "Create powerful forms in minutes with AI-driven ease – no coding, just smart design!"
-                        "Transform your data collection with intuitive, AI-powered forms that adapt to your needs."
+                        &quot;Create powerful forms in minutes with AI-driven ease – no coding, just smart design!&quot;
+                        &quot;Transform your data collection with intuitive, AI-powered forms that adapt to your needs.&quot;
                         </p>
 
                         <div className="mt-8 flex flex-wrap justify-center gap-4">

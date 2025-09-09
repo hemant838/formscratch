@@ -1,0 +1,113 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="800" viewBox="0 0 1200 800">
+  <defs>
+    <style>
+      .title { font: 700 20px sans-serif; fill: #111 }
+      .label { font: 600 14px sans-serif; fill: #111 }
+      .small { font: 12px sans-serif; fill: #333 }
+      .entity { fill: #F3F4F6; stroke: #111827; stroke-width: 2 }
+      .process { fill: #DBEAFE; stroke: #1E3A8A; stroke-width: 2 }
+      .store { fill: #DCFCE7; stroke: #166534; stroke-width: 2 }
+      .external { fill: #FEE2E2; stroke: #991B1B; stroke-width: 2 }
+      .arrow { stroke: #374151; stroke-width: 2; marker-end: url(#arrowhead) }
+      .dashed { stroke-dasharray: 6 4 }
+    </style>
+    <marker id="arrowhead" markerWidth="10" markerHeight="7" refX="10" refY="3.5" orient="auto">
+      <polygon points="0 0, 10 3.5, 0 7" fill="#374151" />
+    </marker>
+  </defs>
+
+  <text x="600" y="40" text-anchor="middle" class="title">FormScratch – High-Level Data Flow Diagram (DFD)</text>
+
+  <!-- External Entities -->
+  <rect x="40" y="90" width="200" height="70" rx="8" class="external"/>
+  <text x="140" y="130" text-anchor="middle" class="label">User (Browser)</text>
+  <text x="140" y="148" text-anchor="middle" class="small">Creates/Edits/Views Forms</text>
+
+  <rect x="40" y="260" width="200" height="70" rx="8" class="external"/>
+  <text x="140" y="300" text-anchor="middle" class="label">Clerk</text>
+  <text x="140" y="318" text-anchor="middle" class="small">Auth & Sessions</text>
+
+  <rect x="960" y="110" width="200" height="70" rx="8" class="external"/>
+  <text x="1060" y="150" text-anchor="middle" class="label">Gemini API</text>
+  <text x="1060" y="168" text-anchor="middle" class="small">AI Form Generation</text>
+
+  <!-- Core App (Next.js) -->
+  <rect x="330" y="80" width="520" height="220" rx="12" class="entity"/>
+  <text x="590" y="110" text-anchor="middle" class="label">Next.js App (App Router)</text>
+  <text x="590" y="128" text-anchor="middle" class="small">Client Components + Server Routes</text>
+
+  <!-- Processes inside App -->
+  <rect x="360" y="150" width="220" height="90" rx="12" class="process"/>
+  <text x="470" y="185" text-anchor="middle" class="label">Authentication</text>
+  <text x="470" y="205" text-anchor="middle" class="small">Clerk middleware & UI</text>
+
+  <rect x="600" y="150" width="220" height="90" rx="12" class="process"/>
+  <text x="710" y="185" text-anchor="middle" class="label">Form Generation</text>
+  <text x="710" y="205" text-anchor="middle" class="small">`generateForm.ts` uses Gemini</text>
+
+  <!-- Data Store -->
+  <g>
+    <ellipse cx="600" cy="420" rx="170" ry="30" class="store"/>
+    <rect x="430" y="420" width="340" height="100" class="store"/>
+    <ellipse cx="600" cy="520" rx="170" ry="30" class="store"/>
+    <text x="600" y="460" text-anchor="middle" class="label">Postgres (Neon)</text>
+    <text x="600" y="480" text-anchor="middle" class="small">Drizzle ORM (`src/config/index.ts`)</text>
+  </g>
+
+  <!-- Secondary labels / notes -->
+  <text x="590" y="70" text-anchor="middle" class="small">Env: NEXT_PUBLIC_BASE_URL, NEXT_PUBLIC_GEMINI_API_KEY, NEXT_PUBLIC_DATABASE_URL_CONFIG</text>
+
+  <!-- Flows -->
+  <!-- User to Next.js -->
+  <line x1="240" y1="125" x2="330" y2="170" class="arrow"/>
+  <text x="290" y="150" class="small">HTTP(S) requests</text>
+
+  <!-- Next.js to Clerk -->
+  <line x1="360" y1="195" x2="240" y2="295" class="arrow"/>
+  <text x="300" y="240" class="small">Sign-in / JWT / Session</text>
+
+  <!-- Clerk back to Next.js (session) -->
+  <line x1="240" y1="295" x2="360" y2="210" class="arrow dashed"/>
+
+  <!-- Form Generation to Gemini -->
+  <line x1="820" y1="195" x2="960" y2="145" class="arrow"/>
+  <text x="880" y="165" class="small">Prompt + API Key</text>
+
+  <!-- Gemini back to Form Generation -->
+  <line x1="960" y1="145" x2="820" y2="205" class="arrow dashed"/>
+  <text x="910" y="190" class="small">Generated Schema/Copy</text>
+
+  <!-- App to DB (CRUD) -->
+  <line x1="590" y1="300" x2="590" y2="390" class="arrow"/>
+  <text x="600" y="350" class="small">Create/Read/Update/Delete</text>
+
+  <!-- DB back to App -->
+  <line x1="610" y1="390" x2="610" y2="300" class="arrow dashed"/>
+  <text x="630" y="345" class="small">Records (Forms, Responses)</text>
+
+  <!-- Next.js to User (rendered UI) -->
+  <line x1="330" y1="185" x2="240" y2="125" class="arrow dashed"/>
+  <text x="275" y="110" class="small">HTML/CSS/JS</text>
+
+  <!-- Public form / share links note -->
+  <text x="240" y="80" class="small">Public links built with `NEXT_PUBLIC_BASE_URL`</text>
+
+  <!-- Legend -->
+  <g>
+    <rect x="900" y="600" width="270" height="150" rx="10" fill="#FFFFFF" stroke="#9CA3AF" />
+    <text x="1035" y="625" text-anchor="middle" class="label">Legend</text>
+    <rect x="920" y="640" width="18" height="18" class="external"/>
+    <text x="945" y="654" class="small">External Entity</text>
+    <rect x="920" y="665" width="18" height="18" class="entity"/>
+    <text x="945" y="679" class="small">System Boundary</text>
+    <rect x="920" y="690" width="18" height="18" class="process"/>
+    <text x="945" y="704" class="small">Process</text>
+    <rect x="920" y="715" width="18" height="18" class="store"/>
+    <text x="945" y="729" class="small">Data Store</text>
+    <line x1="920" y1="740" x2="950" y2="740" class="arrow"/>
+    <text x="955" y="744" class="small">Data Flow</text>
+    <line x1="1020" y1="740" x2="1050" y2="740" class="arrow dashed"/>
+    <text x="1055" y="744" class="small">Response/Return</text>
+  </g>
+</svg>
